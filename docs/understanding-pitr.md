@@ -1,4 +1,4 @@
-# pgBackRest PITR — Understanding & Standard Operating Procedure
+# pgBackRest PITR Understanding & Standard Operating Procedure
 
 **Applies to:** PostgreSQL 14+ on Ubuntu 24.04
 **Audience:** DevOps Engineers, Engineering Managers
@@ -9,21 +9,21 @@
 
 ## Table of Contents
 
-**Part A — Understanding**
+**Part A Understanding**
 1. [What is PITR?](#1-what-is-pitr)
 2. [Core Terminology](#2-core-terminology)
 3. [How the Components Relate](#3-how-the-components-relate)
-4. [The PITR Workflow — End to End](#4-the-pitr-workflow--end-to-end)
+4. [The PITR Workflow End to End](#4-the-pitr-workflow--end-to-end)
 5. [Recovery Target Settings](#5-recovery-target-settings)
 6. [RPO and RTO](#6-rpo-and-rto)
 
-**Part B — Standard Operating Procedure**
+**Part B Standard Operating Procedure**
 
 7. [Backup Policy](#7-backup-policy)
 8. [Retention Policy](#8-retention-policy)
 9. [WAL Archive Management](#9-wal-archive-management)
-10. [Recovery Procedure — PITR to Specific Time](#10-recovery-procedure--pitr-to-specific-time)
-11. [Recovery Procedure — Latest Restore (No PITR)](#11-recovery-procedure--latest-restore-no-pitr)
+10. [Recovery Procedure PITR to Specific Time](#10-recovery-procedure--pitr-to-specific-time)
+11. [Recovery Procedure Latest Restore (No PITR)](#11-recovery-procedure--latest-restore-no-pitr)
 12. [Post-Recovery Validation](#12-post-recovery-validation)
 13. [Routine Operational Checks](#13-routine-operational-checks)
 14. [Future Enhancements](#14-future-enhancements)
@@ -32,13 +32,13 @@
 
 ---
 
-# PART A — UNDERSTANDING
+# PART A UNDERSTANDING
 
 ---
 
 ## 1. What is PITR?
 
-**Point-in-Time Recovery (PITR)** lets you restore a PostgreSQL database to any specific moment in its history. Not just the last backup — any second within your retention window.
+**Point-in-Time Recovery (PITR)** lets you restore a PostgreSQL database to any specific moment in its history. Not just the last backup any second within your retention window.
 
 You need this when:
 - Someone runs an accidental `DELETE` or `DROP TABLE`
@@ -46,7 +46,7 @@ You need this when:
 - Corruption shows up at a known timestamp
 - An app bug writes bad data starting from a specific point
 
-PITR requires two things working together: **base backups** and **continuous WAL archiving**. Neither works alone — you need both.
+PITR requires two things working together: **base backups** and **continuous WAL archiving**. Neither works alone you need both.
 
 ---
 
@@ -60,10 +60,10 @@ PITR requires two things working together: **base backups** and **continuous WAL
 | **WAL Segment** | A 16 MB file (default) holding a chunk of WAL data. When full, it gets archived and a new one starts. |
 | **Stanza** | pgBackRest's name for a backup configuration tied to a specific PostgreSQL instance. Ours is called `main`. |
 | **Repository** | Where pgBackRest stores all backup data and archived WAL segments. |
-| **Full Backup** | Complete copy of all PostgreSQL data files. Self-contained — can restore on its own. |
+| **Full Backup** | Complete copy of all PostgreSQL data files. Self-contained can restore on its own. |
 | **Differential Backup** | Everything that changed since the last full backup. Needs the full to restore. |
 | **Incremental Backup** | Everything that changed since the last backup of any type. Needs the full + all prior backups in the chain to restore. |
-| **PITR** | Point-in-Time Recovery — restoring to a specific timestamp using a base backup + WAL replay. |
+| **PITR** | Point-in-Time Recovery restoring to a specific timestamp using a base backup + WAL replay. |
 | **Recovery Target** | The timestamp (or transaction ID) where WAL replay stops during a PITR restore. |
 | **Promotion** | Taking a PostgreSQL instance out of read-only recovery mode and making it read-write. |
 | **`pg_promote()`** | PostgreSQL function that promotes a recovering instance to primary (read-write). |
@@ -117,7 +117,7 @@ Know how these pieces connect before you run any recovery.
 
 ---
 
-## 4. The PITR Workflow — End to End
+## 4. The PITR Workflow End to End
 
 The full lifecycle from normal operations to recovery.
 
@@ -154,7 +154,7 @@ pgBackRest selects: Full backup from Day 0 02:00
   + Incremental from 09:00
   + WAL replay from 09:00 → 10:34:30
 
-Result: Database state as of 10:34:30 — the DELETE never happened
+Result: Database state as of 10:34:30 the DELETE never happened
 ```
 
 ### 4.5 Promotion
@@ -173,7 +173,7 @@ Two flags control where and how recovery stops during a PITR restore:
 |---|---|
 | `time` | Stop replay at a specific timestamp. Most common. |
 | `immediate` | Stop as soon as the backup is consistent (end of backup, no WAL replay). |
-| *(omitted)* | Replay all available WAL — restore to the latest possible state. |
+| *(omitted)* | Replay all available WAL restore to the latest possible state. |
 
 ### `--target`
 
@@ -212,7 +212,7 @@ sudo -u postgres pgbackrest info
 | **RPO** (Recovery Point Objective) | Maximum acceptable data loss, measured in time | ~1 hour (with hourly incrementals + continuous WAL) |
 | **RTO** (Recovery Time Objective) | Maximum acceptable time to restore service | 30–90 minutes depending on DB size and backup chain depth |
 
-**To reduce RPO:** Lower `archive_timeout` (e.g. to `30`). This only matters if the server crashes before a WAL segment fills — normally WAL is archived within seconds of a commit.
+**To reduce RPO:** Lower `archive_timeout` (e.g. to `30`). This only matters if the server crashes before a WAL segment fills normally WAL is archived within seconds of a commit.
 
 **To reduce RTO:** Take more frequent full backups. This shortens the WAL replay window. For large databases, going from 24-hour to 12-hour fulls can cut RTO noticeably.
 
@@ -220,7 +220,7 @@ sudo -u postgres pgbackrest info
 
 ---
 
-# PART B — STANDARD OPERATING PROCEDURE
+# PART B STANDARD OPERATING PROCEDURE
 
 ---
 
@@ -236,7 +236,7 @@ sudo -u postgres pgbackrest info
 | WAL Archiving | Continuous | Every 60s minimum | Enables PITR to any second |
 | Integrity Verify | Weekly (Sunday) | 03:30 | Catches repository corruption early |
 
-> **Note on existing policy (Full: 4 weeks, Diff: 7 days):** That's the retention policy. The schedule above shifts full backups to weekly (not daily) to keep storage costs reasonable, and adds hourly incrementals for tighter RPO. Daily fulls work too — just adjust the cron.
+> **Note on existing policy (Full: 4 weeks, Diff: 7 days):** That's the retention policy. The schedule above shifts full backups to weekly (not daily) to keep storage costs reasonable, and adds hourly incrementals for tighter RPO. Daily fulls work too just adjust the cron.
 
 ### 7.2 Crontab Configuration
 
@@ -281,10 +281,10 @@ sudo -u postgres crontab -e
 |---|---|---|
 | Full backups | 4 weeks (4 sets) | `repo1-retention-full=4` |
 | Differential backups | 7 days | `repo1-retention-diff=7` |
-| Incremental backups | Managed automatically within diff chain | — |
+| Incremental backups | Managed automatically within diff chain | |
 | WAL archives | Kept as long as the oldest full backup needs them | Automatic |
 
-> pgBackRest automatically expires WAL archives that no retained backup needs. WAL retention isn't configured separately — it follows backup retention.
+> pgBackRest automatically expires WAL archives that no retained backup needs. WAL retention isn't configured separately it follows backup retention.
 
 ### 8.2 How Retention Works
 
@@ -306,7 +306,7 @@ sudo -u postgres crontab -e
 
 ### 9.1 How WAL Archiving Works
 
-PostgreSQL writes every transaction to WAL segments (16 MB files by default). When a segment fills — or `archive_timeout` is reached — `archive_command` runs, and pgBackRest copies the segment to the repository.
+PostgreSQL writes every transaction to WAL segments (16 MB files by default). When a segment fills or `archive_timeout` is reached `archive_command` runs, and pgBackRest copies the segment to the repository.
 
 ```
 Transaction commits
@@ -333,7 +333,7 @@ Transaction commits
 ### 9.3 Rules
 
 - **Never manually delete WAL files** from the PostgreSQL data directory (`pg_wal/`) or the repository. pgBackRest handles this.
-- **Never run** `pg_resetwal` — it breaks WAL continuity and kills PITR.
+- **Never run** `pg_resetwal` it breaks WAL continuity and kills PITR.
 - If the archive command fails, PostgreSQL keeps retrying. A sustained failure causes WAL segments to pile up in `pg_wal/`, which will eventually fill the disk. Monitor this.
 - Check archiving daily:
 
@@ -343,7 +343,7 @@ sudo -u postgres pgbackrest --stanza=main check
 
 ---
 
-## 10. Recovery Procedure — PITR to Specific Time
+## 10. Recovery Procedure PITR to Specific Time
 
 **When to use this:** You need to restore the database to a specific point in time, usually to undo an accidental operation.
 
@@ -360,7 +360,7 @@ Before doing anything, confirm:
 
 ---
 
-### Step 1 — Identify Target Recovery Time
+### Step 1 Identify Target Recovery Time
 
 **From application logs:**
 ```bash
@@ -378,7 +378,7 @@ Example: If the accidental DELETE shows up at `10:34:52`, use `--target="2026-04
 
 ---
 
-### Step 2 — Verify Backup Coverage
+### Step 2 Verify Backup Coverage
 
 ```bash
 sudo -u postgres pgbackrest info
@@ -388,7 +388,7 @@ Confirm a backup exists **before** your target time. The output shows backup sta
 
 ---
 
-### Step 3 — Stop PostgreSQL
+### Step 3 Stop PostgreSQL
 
 ```bash
 sudo systemctl stop postgresql
@@ -402,7 +402,7 @@ sudo systemctl status postgresql
 
 ---
 
-### Step 4 — Move Existing Data Directory
+### Step 4 Move Existing Data Directory
 
 pgBackRest won't overwrite a non-empty data directory. Move it first.
 
@@ -417,7 +417,7 @@ sudo chmod 700 /var/lib/postgresql/14/main
 
 ---
 
-### Step 5 — Execute Restore
+### Step 5 Execute Restore
 
 ```bash
 sudo -u postgres pgbackrest --stanza=main restore \
@@ -436,7 +436,7 @@ This command:
 
 ---
 
-### Step 6 — Start PostgreSQL
+### Step 6 Start PostgreSQL
 
 ```bash
 sudo systemctl start postgresql
@@ -454,13 +454,13 @@ echo "PostgreSQL is ready."
 
 ---
 
-### Step 7 — Validate Recovery
+### Step 7 Validate Recovery
 
-See [Section 12 — Post-Recovery Validation](#12-post-recovery-validation).
+See [Section 12 Post-Recovery Validation](#12-post-recovery-validation).
 
 ---
 
-### Step 8 — Cleanup
+### Step 8 Cleanup
 
 Once you've validated and the database is confirmed healthy:
 
@@ -484,13 +484,13 @@ bash scripts/auto-recovery.sh "2026-04-28 10:34:30"
 
 ---
 
-## 11. Recovery Procedure — Latest Restore (No PITR)
+## 11. Recovery Procedure Latest Restore (No PITR)
 
 **When to use this:** The database is corrupted or gone and you need to restore to the most recent backup state. No specific time target.
 
 ---
 
-### Step 1 — Stop PostgreSQL
+### Step 1 Stop PostgreSQL
 
 ```bash
 sudo systemctl stop postgresql
@@ -498,7 +498,7 @@ sudo systemctl stop postgresql
 
 ---
 
-### Step 2 — Move Existing Data Directory
+### Step 2 Move Existing Data Directory
 
 ```bash
 sudo mv /var/lib/postgresql/14/main \
@@ -511,17 +511,17 @@ sudo chmod 700 /var/lib/postgresql/14/main
 
 ---
 
-### Step 3 — Execute Restore
+### Step 3 Execute Restore
 
 ```bash
 sudo -u postgres pgbackrest --stanza=main restore
 ```
 
-This restores the most recent backup and replays all available WAL — getting as close to the present as possible.
+This restores the most recent backup and replays all available WAL getting as close to the present as possible.
 
 ---
 
-### Step 4 — Start PostgreSQL
+### Step 4 Start PostgreSQL
 
 ```bash
 sudo systemctl start postgresql
@@ -529,9 +529,9 @@ sudo systemctl start postgresql
 
 ---
 
-### Step 5 — Validate Recovery
+### Step 5 Validate Recovery
 
-See [Section 12 — Post-Recovery Validation](#12-post-recovery-validation).
+See [Section 12 Post-Recovery Validation](#12-post-recovery-validation).
 
 ---
 
@@ -545,7 +545,7 @@ Run these checks after **every** recovery, regardless of type.
 sudo -u postgres psql -c "SELECT pg_is_in_recovery();"
 ```
 
-Expected: `f` (false — not in recovery).
+Expected: `f` (false not in recovery).
 
 If you get `t`, the database is still in read-only mode. Promote manually:
 
@@ -664,14 +664,14 @@ Expected: `check command end: completed successfully`
 | Task | Command |
 |---|---|
 | Run integrity verification | `sudo -u postgres pgbackrest --stanza=main verify` |
-| Review retention — confirm old backups expired | `sudo -u postgres pgbackrest info` |
+| Review retention confirm old backups expired | `sudo -u postgres pgbackrest info` |
 | Check PostgreSQL log for archiving warnings | `grep -i "archive" /var/log/postgresql/postgresql-14-main.log` |
 
 ### 13.3 Monthly
 
 | Task | Notes |
 |---|---|
-| Full restore drill | Restore to a separate host (not production). Run the Section 12 checks. Write down how long it took — that's your RTO baseline. |
+| Full restore drill | Restore to a separate host (not production). Run the Section 12 checks. Write down how long it took that's your RTO baseline. |
 | Review backup storage growth | Adjust retention or plan for more disk if needed |
 | Review and update this SOP | Add any new issues or process changes |
 
@@ -697,7 +697,7 @@ repo2-s3-endpoint=s3.amazonaws.com
 repo2-retention-full=4
 ```
 
-pgBackRest can write to multiple repositories at the same time — backups go to both local and remote with no extra work.
+pgBackRest can write to multiple repositories at the same time backups go to both local and remote with no extra work.
 
 ### 14.2 Separate Backup Disk (Do This First)
 

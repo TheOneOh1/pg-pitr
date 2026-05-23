@@ -361,7 +361,7 @@ sudo chown postgres:postgres /var/lib/postgresql/14/main
 sudo chmod 700 /var/lib/postgresql/14/main
 ```
 
-> **Alternative (delta restore):** If moving the directory isn't practical, use `--delta`. This is slower and has consistency risks — only use it if you know what you're doing:
+> **Alternative (delta restore):** If moving the directory isn't practical, use `--delta`. This is slower and has consistency risks only use it if you know what you're doing:
 > ```bash
 > sudo -u postgres pgbackrest --stanza=main restore \
 >   --type=time --target="2026-04-28 11:30:00" \
@@ -510,11 +510,11 @@ echo "Verify your data before removing the old directory: $BACKUP_OLD"
 | `stanza-create` fails | `sudo systemctl status postgresql` | Make sure PostgreSQL is running and `pg1-path` matches the actual data directory |
 | `archive-push` timeout | `sudo -u postgres pgbackrest --stanza=main check` | Check `/var/log/postgresql/` logs; confirm `archive_command` is correct |
 | Permission denied | Check ownership | `sudo chown -R postgres:postgres /var/lib/pgbackrest /var/log/pgbackrest /var/spool/pgbackrest` |
-| No backups visible | Run info | `sudo -u postgres pgbackrest info` — take a new full backup if none exist |
+| No backups visible | Run info | `sudo -u postgres pgbackrest info` take a new full backup if none exist |
 | Restore target not reached | Wrong timestamp or WAL gap | Use an earlier target time; check WAL retention covers the target period |
 | PostgreSQL won't start after restore | Check journals | `journalctl -u postgresql -xe` |
 | Read-only after restore | Not promoted | `sudo -u postgres psql -c "SELECT pg_promote();"` |
-| Restore fails — data dir not empty | Data directory exists | Move the directory (see Section 13.4) or use `--delta` |
+| Restore fails data dir not empty | Data directory exists | Move the directory (see Section 13.4) or use `--delta` |
 
 ---
 
@@ -594,7 +594,7 @@ Getting the target wrong:
 
 | Mistake | Result |
 |---|---|
-| Target too late (08:56:30) | Includes the DELETE — data not recovered |
+| Target too late (08:56:30) | Includes the DELETE data not recovered |
 | Target too early (08:53:30) | Loses valid inserts from 08:54–08:55 |
 
 ---
@@ -636,10 +636,10 @@ grep "DELETE" /var/log/postgresql/postgresql-14-main.log
 | Restore testing | Test a full restore **monthly** on a separate host |
 | Log monitoring | Check backup logs **daily** for errors |
 | Retention | Keep at least **7 daily** restore points |
-| Time sync | Use NTP — PITR timestamps depend on accurate system time |
-| WAL files | **Never manually delete WAL files** — let pgBackRest manage retention |
+| Time sync | Use NTP PITR timestamps depend on accurate system time |
+| WAL files | **Never manually delete WAL files** let pgBackRest manage retention |
 | Promotion | Always use `--target-action=promote` on restore commands |
-| Crontab | Use `sudo -u postgres crontab -e` — not `sudo crontab -u postgres -e` — avoids sudo prefix issues |
+| Crontab | Use `sudo -u postgres crontab -e` not `sudo crontab -u postgres -e` avoids sudo prefix issues |
 | Delta restore | Only use `--delta` if you understand the consistency risks |
 | Repository verification | Run `pgbackrest verify` weekly to catch corruption early |
 | Async archiving | Use `archive-async=y` on write-heavy instances so archiving doesn't block transactions |
