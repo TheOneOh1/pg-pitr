@@ -1,0 +1,14 @@
+services:
+  pg_pitr_sandbox:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pg_pitr_sandbox
+    ports:
+      - "5432:5432"
+    volumes:
+      # Mount scripts directory directly to make them testable within the container
+      - ../scripts:/scripts
+    tty: true
+    stdin_open: true
+    restart: unless-stopped
