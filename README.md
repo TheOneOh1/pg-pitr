@@ -88,7 +88,6 @@ graph TD
 Navigate the repository using this structural guide:
 
 * **`.github/workflows/ci.yml`**: Automates syntax checking and ShellCheck linting on all repository bash scripts during push and pull requests.
-* **`.github/ISSUE_TEMPLATE/`**: Standard bug reporting and feature request forms.
 * **`configs/pgbackrest.example.conf`**: Standalone configuration template containing optimal production parameters (asynchronous archiving, spool paths, retention sizes, and compression levels).
 * **`configs/postgresql.example.conf`**: Standalone configuration parameters to enable WAL archiving within `postgresql.conf`.
 * **`docker/`**: The local containerized sandbox environment.
@@ -307,17 +306,6 @@ sudo -u postgres pgbackrest --stanza=main backup --type=full
   df -h /var/lib/pgbackrest
   ```
   If repository usage exceeds 80%, consider lowering the full backup retention counts in `/etc/pgbackrest.conf` (e.g., set `repo1-retention-full=4`) or adding disk space.
-
----
-
-## Scripting Standards & Contributing
-
-All code and script contributions to this repository must follow the rules defined in [CONTRIBUTING.md](CONTRIBUTING.md) and conform to `bash-scripting-skill.md`. 
-
-Ensure that any changes pass ShellCheck linting:
-```bash
-shellcheck scripts/*.sh
-```
 
 ---
 
