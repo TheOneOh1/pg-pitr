@@ -304,9 +304,9 @@ CREATE TABLE employees (
 );
 
 INSERT INTO employees(name, salary) VALUES
-  ('Anand', 50000),
-  ('Riya',  60000),
-  ('Karan', 70000);
+  ('Levi', 50000),
+  ('Mikasa',  60000),
+  ('Kenny', 70000);
 
 SELECT * FROM employees;
 ```

@@ -119,9 +119,9 @@ CREATE TABLE IF NOT EXISTS employees (
 
 sudo -u postgres psql -d testpitr -c "
 INSERT INTO employees(name, salary) VALUES
-  ('Anand', 50000),
-  ('Riya',  60000),
-  ('Karan', 70000)
+  ('Levi', 50000),
+  ('Mikasa',  60000),
+  ('Kenny', 70000)
 ON CONFLICT DO NOTHING;"
 
 echo "[SANDBOX] Current test data in 'testpitr.employees':"

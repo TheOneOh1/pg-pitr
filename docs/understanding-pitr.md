@@ -725,8 +725,4 @@ Hook pgBackRest log output into your monitoring stack (Grafana, PagerDuty, Slack
 
 ---
 
----
-
-*This document is maintained by the DevOps team. Review it after any recovery event or infrastructure change. All commands assume the `postgres` system user unless prefixed with `sudo`.*
-
 *Companion document: [Setup Guide](setup-guide.md)*
